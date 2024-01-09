@@ -1,0 +1,9 @@
+[package]
+name = "geng-gltf"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+geng = { git = "https://github.com/geng-engine/geng.git" }
+gltf = "1.4.0"
+thiserror = "1.0.56"
