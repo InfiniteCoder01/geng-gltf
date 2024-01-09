@@ -25,18 +25,17 @@ uniform mat4 u_model_matrix;
 uniform mat4 u_joint_mat[2];
 
 void main() {
-    mat4 skin_matrix =
-        a_weights.x * u_joint_mat[int(a_joints.x)] +
+    mat4 skin_matrix = a_weights.x * u_joint_mat[int(a_joints.x)] +
         a_weights.y * u_joint_mat[int(a_joints.y)] +
         a_weights.z * u_joint_mat[int(a_joints.z)] +
         a_weights.w * u_joint_mat[int(a_joints.w)];
 
-    v_world_pos = vec4(a_pos, 1.0) * skin_matrix * u_model_matrix;
+    v_world_pos = vec4(a_pos, 1.0) * u_model_matrix;
     v_normal = normalize(vec3(u_model_matrix * vec4(a_normal, 0.0)));
     gl_Position = u_projection_matrix * u_view_matrix * v_world_pos;
 
     v_uv = a_uv;
-    v_color = a_color;
+    v_color = vec4(u_joint_mat[0][0][0], 1.0, 1.0, 1.0); // a_color;
 }
 #endif
 

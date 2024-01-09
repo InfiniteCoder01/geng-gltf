@@ -32,10 +32,12 @@ impl geng::AbstractCamera3d for Camera {
         )
     }
 }
+
 fn main() {
     logger::init();
     geng::setup_panic_handler();
-    Geng::run("Hello, World!", |geng| async move {
+
+    Geng::run("glTF", |geng| async move {
         let mut events = geng.window().events();
 
         let model =
@@ -81,10 +83,8 @@ fn main() {
                             (
                                 ugli::uniforms! {
                                     u_model_matrix: mat4::identity(),
-                                    u_joint_mat: [
-                                        mat4::identity(),
-                                        mat4::identity(),
-                                    ],
+                                    u_joint_mat[0]: mat4::identity(),
+                                    u_joint_mat[1]: mat4::identity(),
                                     u_light_pos: vec3(1.2, 1.0, 2.0),
                                 },
                                 camera.uniforms(framebuffer_size),
