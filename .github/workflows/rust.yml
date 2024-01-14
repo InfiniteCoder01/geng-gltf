@@ -1,22 +1,51 @@
-name: Rust
-
 on:
   push:
-    branches: [ "master" ]
   pull_request:
-    branches: [ "master" ]
-
-env:
-  CARGO_TERM_COLOR: always
+  workflow_dispatch:
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
+  test:
+    name: Test (native)
+    runs-on: ${{ matrix.platform.runs-on }}
+    strategy:
+      matrix:
+        platform:
+          - runs-on: ubuntu-latest
+            channel: linux
+          # - runs-on: macos-latest
+          #   channel: mac
+          # - runs-on: windows-latest
+          #   channel: windows
     steps:
-    - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install things
+        if: matrix.platform.channel == 'linux'
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev libudev-dev
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Test
+        run: cargo test --workspace
+
+  test-web:
+    name: Test (web)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          target: wasm32-unknown-unknown
+
+      - name: Test
+        run: cargo check --workspace --target wasm32-unknown-unknown
