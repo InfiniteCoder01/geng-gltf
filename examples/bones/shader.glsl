@@ -1,6 +1,5 @@
 // Derived from: https://github.com/geng-engine/geng/blob/main/examples/gltf/assets/shader.glsl
 #include <gltf>
-#include <gltf-pbr>
 
 varying vec2 v_uv;
 varying vec4 v_color;
@@ -27,7 +26,6 @@ void main() {
 
     v_uv = a_uv;
     v_color = a_color;
-    pbr();
 }
 #endif
 
@@ -49,6 +47,6 @@ void main() {
     float diff = max(dot(v_normal, light_dir), 0.0);
     vec3 diffuse = diff * light_color;
 
-    gl_FragColor = vec4(ambient + diffuse, 1.0) * sample_material_texture(v_uv) * v_color;
+    gl_FragColor = vec4(ambient + diffuse, 1.0) * v_color;
 }
 #endif

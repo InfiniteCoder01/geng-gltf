@@ -13,7 +13,7 @@ pub struct Vertex {
 
 pub struct Mesh {
     pub data: ugli::VertexBuffer<Vertex>,
-    pub material: Material,
+    pub material: usize,
     pub mode: ugli::DrawMode,
 }
 
@@ -22,6 +22,7 @@ impl Mesh {
         ugli: &Ugli,
         primitive: gltf::Primitive,
         buffers: &[gltf::buffer::Data],
+        material: usize,
     ) -> Result<Self, MeshLoadError> {
         let reader = primitive.reader(|buffer| buffers.get(buffer.index()).map(|x| &**x));
 
@@ -99,11 +100,6 @@ impl Mesh {
                 })
                 .collect(),
         );
-
-        let material = {
-            let material = primitive.material();
-            Material {}
-        };
 
         Ok(Self {
             data,

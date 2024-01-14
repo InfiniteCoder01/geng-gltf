@@ -1,0 +1,12 @@
+{
+  "binaries": [],
+  "examples": [
+    {
+      "name": "simple",
+      "src_path": "/mnt/Dev/Rust/Libraries/geng-gltf/examples/simple/main.rs",
+      "required_features": []
+    }
+  ],
+  "integration_tests": [],
+  "unit_tests": []
+}

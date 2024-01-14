@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-geng = { git = "https://github.com/InfiniteCoder01/geng.git", branch = "UniformArrays"}
+geng = { git = "https://github.com/InfiniteCoder01/geng.git" }
 gltf = "1.4.0"
 thiserror = "1.0.56"
