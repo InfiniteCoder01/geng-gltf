@@ -3,6 +3,13 @@ use super::*;
 pub struct Material {
     pub base_color: Rgba<f32>,
     pub base_texture: ugli::Texture,
+
+    pub metallic: f32,
+    pub roughness: f32,
+    pub metallic_roughness_texture: ugli::Texture,
+
+    pub normal_texture: ugli::Texture,
+    pub normal_scale: f32,
 }
 
 impl Material {
@@ -24,20 +31,54 @@ impl Material {
             .base_color_texture()
             .map_or_else(
                 || white_texture(ugli),
-                |texture| ugli_texture(ugli, texture, images),
+                |texture| ugli_texture(ugli, texture.texture(), images),
             );
+
+        let metallic = material.pbr_metallic_roughness().metallic_factor();
+        let roughness = material.pbr_metallic_roughness().roughness_factor();
+        let metallic_roughness_texture = material
+            .pbr_metallic_roughness()
+            .metallic_roughness_texture()
+            .map_or_else(
+                || white_texture(ugli),
+                |texture| ugli_texture(ugli, texture.texture(), images),
+            );
+
+        let (normal_texture, normal_scale) = material.normal_texture().map_or_else(
+            || {
+                (
+                    ugli::Texture::new_with(ugli, vec2(1, 1), |_| Rgba::new(0.5, 0.5, 1.0, 1.0)),
+                    1.0,
+                )
+            },
+            |texture| {
+                if texture.tex_coord() != 0 {
+                    log::error!("Only one UV set is supported right now");
+                }
+                (
+                    ugli_texture(ugli, texture.texture(), images),
+                    texture.scale(),
+                )
+            },
+        );
+
         // material.alpha_cutoff()
         // material.alpha_mode()
         // material.double_sided()
 
         // material.emissive_factor()
         // material.emissive_texture()
-        // material.normal_texture()
         // material.occlusion_texture()
-        // material.pbr_metallic_roughness()
         Ok(Self {
             base_color,
             base_texture,
+
+            metallic,
+            roughness,
+            metallic_roughness_texture,
+
+            normal_texture,
+            normal_scale,
         })
     }
 
@@ -45,6 +86,12 @@ impl Material {
         ugli::uniforms! {
             u_base_color: self.base_color,
             u_base_texture: &self.base_texture,
+
+            u_metallic_roughness: vec2(self.metallic, self.roughness),
+            u_metallic_roughness_texture: &self.metallic_roughness_texture,
+
+            u_normal_texture: &self.normal_texture,
+            u_normal_scale: self.normal_scale,
         }
     }
 }
@@ -55,11 +102,11 @@ fn white_texture(ugli: &Ugli) -> ugli::Texture {
 
 fn ugli_texture(
     ugli: &Ugli,
-    texture: gltf::texture::Info,
+    texture: gltf::texture::Texture,
     images: &[gltf::image::Data],
 ) -> ugli::Texture {
-    let image = &images[texture.texture().source().index()];
-    let sampler = texture.texture().sampler();
+    let image = &images[texture.source().index()];
+    let sampler = texture.sampler();
     let (format, r#type) = match image.format {
         gltf::image::Format::R8 => (ugli::Format::R, ugli::Type::UnsignedByte),
         gltf::image::Format::R8G8 => (ugli::Format::RG, ugli::Type::UnsignedByte),

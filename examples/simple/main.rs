@@ -9,7 +9,7 @@ fn main() {
             window: geng::window::Options::new("glTF"),
             shader_lib: hashmap! {
                 "gltf".to_owned() => geng_gltf::prelude_shader(),
-                "gltf-pbr".to_owned() => geng_gltf::pbr_shader(),
+                "gltf-pbr".to_owned() => geng_gltf::pbr_shader(), // gltf-pbr shader assumes, that shader_lib contains <gltf> header
             },
             ..default()
         },
@@ -36,7 +36,7 @@ fn main() {
                             &program,
                             Some("Camera"),
                             ugli::uniforms! {
-                                u_light_pos: vec3(1.2, 1.0, 2.0),
+                                u_light_pos: vec3(1.2, 1.0, 2.0), // vec3(3.3, 1.6, -2.5),
                             },
                             ugli::DrawParameters {
                                 depth_func: Some(ugli::DepthFunc::Less),

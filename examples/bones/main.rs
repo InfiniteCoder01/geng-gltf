@@ -42,12 +42,13 @@ fn main() {
             window: geng::window::Options::new("glTF"),
             shader_lib: hashmap! {
                 "gltf".to_owned() => geng_gltf::prelude_shader(),
+                "gltf-pbr".to_owned() => geng_gltf::pbr_shader(),
             },
             ..default()
         },
         |geng| async move {
             let mut model =
-                geng_gltf::Model::load(geng.ugli(), "/home/infinitecoder/Downloads/Test.glb")
+                geng_gltf::Model::load(geng.ugli(), "/home/infinitecoder/Downloads/Male Jesse.glb")
                     .unwrap();
 
             let program = geng
@@ -59,7 +60,7 @@ fn main() {
             let mut camera = Camera {
                 fov: f32::PI / 3.0,
                 pos: vec3(0.0, 0.0, 1.0),
-                distance: 10.0,
+                distance: 1.0,
                 rot_h: Angle::ZERO,
                 rot_v: Angle::from_radians(f32::PI / 3.0),
             };
@@ -88,10 +89,10 @@ fn main() {
                             ugli::clear(framebuffer, Some(Rgba::BLACK), Some(1.0), None);
 
                             model.reset_transforms();
-                            model.apply_animation(
-                                "ArmatureAction",
-                                start.elapsed().as_secs_f32() % 7.5,
-                            );
+                            // model.apply_animation(
+                            //     "ArmatureAction",
+                            //     start.elapsed().as_secs_f32() % 2.4,
+                            // );
 
                             model.draw(
                                 framebuffer,

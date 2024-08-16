@@ -16,7 +16,7 @@ pub struct Model {
     pub document: gltf::Document,
 
     pub cameras: Vec<Projection>,
-    pub meshes: Vec<Mesh>,
+    pub meshes: Vec<Vec<Mesh>>,
     pub materials: Vec<Material>,
     pub skins: Vec<Skin>,
     pub animations: HashMap<String, Animation>,
@@ -48,7 +48,7 @@ impl Model {
             return Err(MeshLoadError::NoDefaultScene);
         }
 
-        debug_node_tree(document.default_scene().unwrap().nodes());
+        // debug_node_tree(document.default_scene().unwrap().nodes());
 
         let mut materials = Vec::new();
         for material in document.materials() {
@@ -58,6 +58,11 @@ impl Model {
         let mut meshes = Vec::new();
         for mesh in document.meshes() {
             log::trace!("Loading mesh {:?}", mesh.name());
+            meshes.push(Vec::new());
+            // if mesh.name() != Some("Mesh.016") {
+            //     continue;
+            // }
+            let primitives = meshes.last_mut().unwrap();
             for primitive in mesh.primitives() {
                 let material = match primitive.material().index() {
                     Some(index) => index,
@@ -71,7 +76,7 @@ impl Model {
                         materials.len() - 1
                     }
                 };
-                meshes.push(Mesh::load(ugli, primitive, &buffers, material)?);
+                primitives.push(Mesh::load(ugli, primitive, &buffers, material)?);
             }
         }
 
@@ -145,9 +150,9 @@ impl Model {
             model: &Model,
             transforms: &mut Transforms,
         ) {
-            transforms.node[node.index()] = mat4::new(node.transform().matrix())
-                * parent_transform
-                * model.transforms[node.index()];
+            transforms.node[node.index()] = mat4::new(node.transform().matrix());
+            transforms.node[node.index()] *= parent_transform;
+            transforms.node[node.index()] *= model.transforms[node.index()];
 
             if let Some(mesh) = node.mesh() {
                 transforms.model[mesh.index()] = transforms.node[node.index()];
@@ -175,33 +180,34 @@ impl Model {
             }
         }
 
+        let uniforms = (
+            if let Some(camera) = transforms.camera_index {
+                vec![geng::camera::Uniforms3d {
+                    u_projection_matrix: self.cameras[camera]
+                        .matrix(framebuffer.size().map(|x| x as f32)),
+                    u_view_matrix: transforms.camera[camera].transpose().inverse(),
+                }]
+            } else {
+                Vec::new()
+            },
+            self.armature_uniforms(&transforms.node),
+            &uniforms,
+        );
+
         for (index, mesh) in self.meshes.iter().enumerate() {
-            ugli::draw(
-                framebuffer,
-                program,
-                mesh.mode,
-                &mesh.data,
-                (
+            for primitive in mesh {
+                ugli::draw(
+                    framebuffer,
+                    program,
+                    primitive.mode,
+                    &primitive.data,
                     (
-                        if let Some(camera) = transforms.camera_index {
-                            vec![geng::camera::Uniforms3d {
-                                u_projection_matrix: self.cameras[camera]
-                                    .matrix(framebuffer.size().map(|x| x as f32)),
-                                u_view_matrix: transforms.camera[camera].transpose().inverse(),
-                            }]
-                        } else {
-                            Vec::new()
-                        },
                         ugli::SingleUniform::new("u_model_matrix", transforms.model[index]),
+                        (self.materials[primitive.material].uniforms(), &uniforms),
                     ),
-                    (
-                        self.armature_uniforms(&transforms.node),
-                        self.materials[mesh.material].uniforms(),
-                        &uniforms,
-                    ),
-                ),
-                draw_parameters,
-            );
+                    draw_parameters,
+                );
+            }
         }
     }
 }

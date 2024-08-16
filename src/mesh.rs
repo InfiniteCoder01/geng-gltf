@@ -92,8 +92,8 @@ impl Mesh {
                         .as_ref()
                         .map_or(vec3::ZERO, |normals| normals[index]),
 
-                    a_uv: uvs.as_ref().map_or(vec2::ZERO, |uvs| uvs[index]),
                     a_color: colors.as_ref().map_or(Rgba::WHITE, |colors| colors[index]),
+                    a_uv: uvs.as_ref().map_or(vec2::ZERO, |uvs| uvs[index]),
 
                     a_joints: joints.as_ref().map_or([0.0; 4], |joints| joints[index]),
                     a_weights: weights.as_ref().map_or([0.0; 4], |weights| weights[index]),
